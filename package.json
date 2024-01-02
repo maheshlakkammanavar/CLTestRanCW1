@@ -1,0 +1,84 @@
+{
+    "name": "BusinessPartnerValidation",
+    "version": "1.0.0",
+    "description": "A simple CAP project.",
+    "license": "ISC",
+    "dependencies": {
+        "@sap/cds": "^7",
+        "@sap/cds-hana": "^2",
+        "@sap-cloud-sdk/http-client": "^3.2.0",
+        "@sap-cloud-sdk/resilience": "^3.3.0",
+        "@sap-cloud-sdk/util": "^3.2.0",
+        "@sap/xb-msg-amqp-v100": "^0.9.39",
+        "@sap/xsenv": "^3.1.1",
+        "@sap/xssec": "^3.6.0",
+        "express": "^4",
+        "grunt": "^1.5.3",
+        "passport": "^0.6.0",
+        "postcode-validator": "^3.1.1"
+    },
+    "engines": {
+        "node": "18.x"
+    },
+    "scripts": {
+        "start": "npx cds-serve",
+        "test": "npm install @cap-js/sqlite && npm run test:integration",
+        "test:rest-api": "mocha tests/rest-api/mocha.test.js --timeout 28000",
+        "test:integration": "jest tests/integration/BPValidation.test.js",
+        "test:unit": "jest tests/unit/service.test.js",
+        "test:legacy": "mocha tests/chai-test.js --timeout 15000 --exit"
+    },
+    "devDependencies": {
+        "axios": "^0.21.1",
+        "jest": "*",
+        "mocha": "^10.2.0",
+        "chai": "^4.3.7",
+        "chai-http": "^4.4.0",
+        "@cap-js/sqlite": "^1.1.0"
+    },
+    "cds": {
+        "features": {
+            "kibana_formatter": true
+        },
+        "hana": {
+            "deploy-format": "hdbtable"
+        },
+        "requires": {
+            "messaging": {
+                "kind": "local-messaging",
+                "[production]": {
+                    "kind": "enterprise-messaging-shared",
+                    "queue": {
+                        "name": "refapps/bpems/abc/BusinessPartnerValidation-srv/1234"
+                    },
+                    "publishPrefix": "$namespace/",
+                    "subscribePrefix": "$namespace/"
+                }
+            },
+            "[production]": {
+                "db": {
+                    "kind": "hana",
+                    "model": [
+                        "db",
+                        "srv"
+                    ]
+                }
+            },
+            "API_BUSINESS_PARTNER": {
+                "kind": "odata-v2",
+                "model": "srv/external/API_BUSINESS_PARTNER",
+                "csrf": true,
+                "csrfInBatch": true,
+                "[production]": {
+                    "credentials": {
+                        "destination": "bupa",
+                        "requestTimeout": 18000000
+                    }
+                }
+            },
+            "uaa": {
+                "kind": "xsuaa"
+            }
+        }
+    }
+}
